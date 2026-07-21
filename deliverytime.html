@@ -99,6 +99,7 @@
 
   .breakdown{font-size:13px; color:var(--sub); margin-top:14px; line-height:1.8}
   .breakdown b{color:var(--ink); font-weight:600}
+  .adjnote{font-size:12px; color:#8a5a12; margin-top:6px; line-height:1.6}
   .hols{margin-top:10px; display:flex; flex-wrap:wrap; gap:6px}
   .holchip{font-size:12px; background:#faeceb; color:#a23129; border:1px solid var(--hol); border-radius:6px; padding:4px 8px}
   .holchip .d{color:#b06a63; margin-left:5px; font-size:11px}
@@ -213,6 +214,7 @@
         <div class="rblock">
           <div class="rlabel">最短到着可能日<span class="tag" id="arriveTag"></span></div>
           <div class="date small mono" id="arrive">—</div>
+          <div class="adjnote" id="adjnote" hidden></div>
         </div>
 
         <div class="breakdown" id="breakdown"></div>
@@ -265,6 +267,48 @@ const HOLIDAYS = [
   {name:"春節(27)推定",start:"2027-02-01", end:"2027-02-14"},
 ];
 
+// 配送・受取ができない日＝土日＋日本の祝日＋年末年始。到着がこれらなら翌営業日へ。
+// 配送会社が動かないため「普通のカレンダー」基準。祝日は毎年更新してください。
+const JP_HOLIDAYS = [
+  // 2026
+  "2026-07-20", // 海の日
+  "2026-08-11", // 山の日
+  "2026-09-21", // 敬老の日
+  "2026-09-22", // 国民の休日
+  "2026-09-23", // 秋分の日
+  "2026-10-12", // スポーツの日
+  "2026-11-03", // 文化の日
+  "2026-11-23", // 勤労感謝の日
+  // 2027
+  "2027-01-01", // 元日
+  "2027-01-11", // 成人の日
+  "2027-02-11", // 建国記念の日
+  "2027-02-23", // 天皇誕生日
+  "2027-03-21", // 春分の日
+  "2027-03-22", // 振替休日
+  "2027-04-29", // 昭和の日
+  "2027-05-03", // 憲法記念日（GW）
+  "2027-05-04", // みどりの日（GW）
+  "2027-05-05", // こどもの日（GW）
+  "2027-07-19", // 海の日
+  "2027-08-11", // 山の日
+  "2027-09-20", // 敬老の日
+  "2027-09-23", // 秋分の日
+  "2027-10-11", // スポーツの日
+  "2027-11-03", // 文化の日
+  "2027-11-23", // 勤労感謝の日
+  "2028-01-01", // 元日
+];
+
+// 年末年始休み。ヤマトサイネージ営業カレンダー基準（8期は12/26〜1/3が連休、1/4仕事始め）。
+// ⚠ 期ごとに確認・調整。土日・1/1も含めて明示（重複してもOK）。
+const NEWYEAR_BREAK = [
+  "2026-12-26","2026-12-27","2026-12-28","2026-12-29","2026-12-30","2026-12-31",
+  "2027-01-01","2027-01-02","2027-01-03",
+  // 9期は暫定（来期カレンダーで要確認）
+  "2027-12-29","2027-12-30","2027-12-31","2028-01-02","2028-01-03",
+];
+
 /* ===== ここから下はロジック ===== */
 const DOW = ["日","月","火","水","木","金","土"];
 const $ = id => document.getElementById(id);
@@ -274,10 +318,16 @@ const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-$
 const HOLS = HOLIDAYS.map(h=>({name:h.name,s:pd(h.start),e:pd(h.end)})).filter(h=>h.s&&h.e);
 const inHol = dt => HOLS.find(h=>dt>=h.s&&dt<=h.e) || null;
 
+// 配送・受取ができない日＝土日＋祝日＋年末年始
+const WHSET = new Set([...JP_HOLIDAYS, ...NEWYEAR_BREAK]);
+const whClosed = d => d.getDay()===0 || d.getDay()===6 || WHSET.has(iso(d));
+const nextWhOpen = d => { const x=new Date(d); let g=0; while(whClosed(x) && g++<400){ x.setDate(x.getDate()+1); } return x; };
+const mdw = d => `${d.getMonth()+1}/${d.getDate()}(${DOW[d.getDay()]})`;
+
 // UI refs
 const orderEl=$("order"), supEl=$("supplier"), daysEl=$("days"),
       transitEl=$("transit"), holToggle=$("holToggle"),
-      pickupEl=$("pickup"), arriveEl=$("arrive"), arriveTag=$("arriveTag"),
+      pickupEl=$("pickup"), arriveEl=$("arrive"), arriveTag=$("arriveTag"), adjnoteEl=$("adjnote"),
       chopEl=$("chop"), bdEl=$("breakdown"), holsEl=$("hols"),
       tlEl=$("timeline"), tlbar=$("tlbar"), footEl=$("foot");
 
@@ -320,7 +370,7 @@ function calc(){
   const transit=parseInt(transitEl.value,10);
   const useHol=holToggle.checked;
 
-  const clear=msg=>{ $("alert").hidden=true; pickupEl.textContent="—"; arriveEl.textContent="—"; arriveTag.textContent=""; chopEl.hidden=true; bdEl.textContent=""; holsEl.innerHTML=""; tlEl.hidden=true; footEl.innerHTML=msg; };
+  const clear=msg=>{ $("alert").hidden=true; $("adjnote").hidden=true; pickupEl.textContent="—"; arriveEl.textContent="—"; arriveTag.textContent=""; chopEl.hidden=true; bdEl.textContent=""; holsEl.innerHTML=""; tlEl.hidden=true; footEl.innerHTML=msg; };
 
   if(!start||isNaN(days)||days<0){ return clear("注文日と所要日数を入れてください。"); }
   if(off.size>=7){ return clear("全曜日を休業にすると計算できません。稼働日を残してください。"); }
@@ -337,11 +387,16 @@ function calc(){
     counted++;
   }
   const pickup=new Date(cur);
-  const arrive=new Date(pickup); arrive.setDate(arrive.getDate()+ (isNaN(transit)?0:transit));
+  const rawArrive=new Date(pickup); rawArrive.setDate(rawArrive.getDate()+ (isNaN(transit)?0:transit));
+  const arrive=nextWhOpen(rawArrive); // 倉庫が閉まっていれば翌営業日へ
 
   pickupEl.innerHTML=fmtDate(pickup);
   arriveEl.innerHTML=fmtDate(arrive);
   arriveTag.textContent = (mode==="sea"?"船":"エア") + `（集荷 +${isNaN(transit)?0:transit}日）`;
+  if(arrive.getTime()!==rawArrive.getTime()){
+    adjnoteEl.textContent=`到着 ${mdw(rawArrive)} は配送休（土日祝・年末年始）のため、翌営業日に繰下げ`;
+    adjnoteEl.hidden=false;
+  }else{ adjnoteEl.hidden=true; }
 
   // stamp
   chopEl.hidden=false; chopEl.classList.remove("stamp"); void chopEl.offsetWidth; chopEl.classList.add("stamp");
@@ -386,7 +441,7 @@ function calc(){
 
   drawTimeline(start, pickup, arrive, useHol);
   footEl.innerHTML =
-    `「集荷可能日」＝サプライヤーが荷渡しできる日。最短到着可能日はそこに輸送日数（船2週間／エア1週間）を足したものです。<br>` +
+    `「集荷可能日」＝サプライヤーが荷渡しできる日。最短到着可能日はそこに輸送日数（船2週間／エア1週間）を足し、配送休（土日祝・年末年始）なら翌営業日に繰下げたものです。<br>` +
     `連休の日程は<b>初期値</b>です。中国の連休は毎年変動するため、公式発表後に更新します。`;
 }
 
