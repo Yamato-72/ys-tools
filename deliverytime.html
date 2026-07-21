@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>YS納期ナビ — 中国サプライヤー</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3QgeD0iMyIgeT0iMyIgd2lkdGg9IjI2IiBoZWlnaHQ9IjI2IiByeD0iNy41IiBmaWxsPSIjYzgzNDJhIi8+PHBhdGggZD0iTTkuNSAxNmgxME0xNSAxMWw1IDUtNSA1IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMi40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz4K">
 <style>
   :root{
     --ink:#1b1f27; --sub:#6b7280; --line:#c9ccd3; --surface:#e9ebef;
@@ -30,6 +31,9 @@
   .eyebrow{font-size:11px; letter-spacing:.18em; color:var(--sub); text-transform:uppercase}
   .title{font-size:19px; font-weight:700; margin:2px 0 0}
   .head .no{font-size:11px; color:var(--sub); letter-spacing:.05em}
+  .brand{display:flex; align-items:center; gap:12px}
+  .logo{flex:none; width:38px; height:38px; transform:rotate(-6deg); filter:drop-shadow(0 2px 4px rgba(200,52,42,.28))}
+  .logo svg{display:block; width:100%; height:100%}
   .popbtn{
     border:1px solid var(--line); background:#fbfbfc; color:var(--ink); border-radius:8px;
     padding:7px 11px; font-size:12px; cursor:pointer; font-family:inherit; white-space:nowrap;
@@ -99,6 +103,11 @@
   .holchip{font-size:12px; background:#faeceb; color:#a23129; border:1px solid var(--hol); border-radius:6px; padding:4px 8px}
   .holchip .d{color:#b06a63; margin-left:5px; font-size:11px}
 
+  .alert{border-radius:9px; padding:11px 13px; font-size:13px; line-height:1.7; margin-bottom:18px}
+  .alert.danger{background:#faeceb; color:#8f2a22; border:1px solid var(--hol)}
+  .alert.caution{background:#fbf3e2; color:#8a5a12; border:1px solid #e8cd93}
+  .alert b{font-weight:700}
+
   .timeline{margin-top:16px}
   .tl-bar{position:relative; height:22px; background:#eef0f3; border-radius:6px; overflow:hidden; border:1px solid var(--line)}
   .tl-seg{position:absolute; top:0; bottom:0}
@@ -113,14 +122,36 @@
 
   .foot{padding:14px 22px 18px; border-top:1px dashed var(--line); font-size:11px; color:var(--sub); line-height:1.7}
   .foot b{color:#a23129}
+
+  /* スマホ・狭い画面：2列を1列に積んで詰める */
+  @media (max-width:480px){
+    body{padding:20px 12px 40px}
+    .head{padding:18px 18px 14px}
+    .body{padding:18px}
+    .grid{grid-template-columns:1fr}
+    .perf{margin:22px -18px 0}
+    .date{font-size:28px}
+    .date.small{font-size:22px}
+    .date .dow{font-size:15px}
+    .chop{padding:4px 8px; font-size:12px}
+    .foot{padding:13px 18px 16px}
+  }
 </style>
 </head>
 <body>
   <main class="card">
     <div class="head">
-      <div>
-        <div class="eyebrow">中国サプライヤー</div>
-        <h1 class="title">YS納期ナビ</h1>
+      <div class="brand">
+        <span class="logo" aria-hidden="true">
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="26" height="26" rx="7.5" fill="#c8342a"/>
+            <path d="M9.5 16h10M15 11l5 5-5 5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <div>
+          <div class="eyebrow">中国サプライヤー</div>
+          <h1 class="title">YS納期ナビ</h1>
+        </div>
       </div>
       <button type="button" class="popbtn" id="popout" title="別ウィンドウで最前面に表示（Chrome/Edge）">⧉ 最前面</button>
     </div>
@@ -173,6 +204,7 @@
       <div class="perf"></div>
 
       <div class="results">
+        <div class="alert" id="alert" hidden></div>
         <div class="rblock">
           <div class="rlabel">集荷可能日<span class="tag">サプライヤー荷渡し</span></div>
           <div class="date mono" id="pickup">—</div>
@@ -288,7 +320,7 @@ function calc(){
   const transit=parseInt(transitEl.value,10);
   const useHol=holToggle.checked;
 
-  const clear=msg=>{ pickupEl.textContent="—"; arriveEl.textContent="—"; arriveTag.textContent=""; chopEl.hidden=true; bdEl.textContent=""; holsEl.innerHTML=""; tlEl.hidden=true; footEl.innerHTML=msg; };
+  const clear=msg=>{ $("alert").hidden=true; pickupEl.textContent="—"; arriveEl.textContent="—"; arriveTag.textContent=""; chopEl.hidden=true; bdEl.textContent=""; holsEl.innerHTML=""; tlEl.hidden=true; footEl.innerHTML=msg; };
 
   if(!start||isNaN(days)||days<0){ return clear("注文日と所要日数を入れてください。"); }
   if(off.size>=7){ return clear("全曜日を休業にすると計算できません。稼働日を残してください。"); }
@@ -331,10 +363,31 @@ function calc(){
     });
   }
 
+  // 連休アラート：生産期間に重なる＝重大、注文日から60日以内（約2ヵ月・基本納期1.5ヵ月＋余裕）に迫る＝注意
+  const alertEl=$("alert"); alertEl.hidden=true; alertEl.className="alert";
+  if(useHol){
+    const danger=HOLS.filter(h=>h.e>=start && h.s<=pickup);
+    if(danger.length){
+      const names=danger.map(h=>h.name).join("・");
+      const push = holDays>0 ? `集荷が <b>${holDays}日</b> ぶん後ろ倒しになっています。` : `集荷日程に影響します。`;
+      alertEl.className="alert danger";
+      alertEl.innerHTML=`<b>連休に重なります</b> — 生産期間が <b>${names}</b> にかかり、${push}到着に余裕を見てください。`;
+      alertEl.hidden=false;
+    }else{
+      const soon=HOLS.filter(h=>{ const d=(h.s-start)/864e5; return d>=0 && d<=60; }).sort((a,b)=>a.s-b.s)[0];
+      if(soon){
+        const dleft=Math.round((soon.s-start)/864e5);
+        alertEl.className="alert caution";
+        alertEl.innerHTML=`<b>連休が近づいています</b> — <b>${soon.name}</b>（${iso(soon.s).slice(5)}〜${iso(soon.e).slice(5)}）まであと <b>${dleft}日</b>。この時期の発注は集荷が混み合い遅れやすいです。`;
+        alertEl.hidden=false;
+      }
+    }
+  }
+
   drawTimeline(start, pickup, arrive, useHol);
   footEl.innerHTML =
     `「集荷可能日」＝サプライヤーが荷渡しできる日。最短到着可能日はそこに輸送日数（船2週間／エア1週間）を足したものです。<br>` +
-    `連休の日程は<b>初期値</b>です。中国の連休は毎年変動するため、公式発表後に更新してください（コード先頭の HOLIDAYS）。`;
+    `連休の日程は<b>初期値</b>です。中国の連休は毎年変動するため、公式発表後に更新します。`;
 }
 
 function drawTimeline(start, pickup, arrive, useHol){
