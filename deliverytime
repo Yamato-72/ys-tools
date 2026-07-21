@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YS納期ナビ — 中国サプライヤー</title>
+<style>
+  :root{
+    --ink:#1b1f27; --sub:#6b7280; --line:#c9ccd3; --surface:#e9ebef;
+    --card:#ffffff; --chop:#c8342a; --chip-on:#1b1f27; --focus:#2f6df6;
+    --hol:#e6b8b3; --transit:#c3d0e6; --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--surface); color:var(--ink);
+    font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex; justify-content:center; padding:28px 16px 48px; min-height:100vh;
+  }
+  .mono{font-family:ui-monospace,"SF Mono","DejaVu Sans Mono",Menlo,Consolas,monospace}
+  .card{
+    width:100%; max-width:460px; background:var(--card); border-radius:var(--radius);
+    box-shadow:0 1px 0 rgba(0,0,0,.04),0 18px 40px -24px rgba(0,0,0,.35); overflow:hidden;
+  }
+  .head{
+    padding:20px 22px 16px; border-bottom:1px dashed var(--line);
+    display:flex; align-items:baseline; justify-content:space-between; gap:10px;
+  }
+  .eyebrow{font-size:11px; letter-spacing:.18em; color:var(--sub); text-transform:uppercase}
+  .title{font-size:19px; font-weight:700; margin:2px 0 0}
+  .head .no{font-size:11px; color:var(--sub); letter-spacing:.05em}
+  .popbtn{
+    border:1px solid var(--line); background:#fbfbfc; color:var(--ink); border-radius:8px;
+    padding:7px 11px; font-size:12px; cursor:pointer; font-family:inherit; white-space:nowrap;
+    transition:background .12s;
+  }
+  .popbtn:hover{background:#f1f2f4}
+  .popbtn:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+  .body{padding:20px 22px}
+
+  .field{margin-bottom:14px}
+  .field label{display:block; font-size:12px; color:var(--sub); margin-bottom:6px; letter-spacing:.02em}
+  .field input,.field select{
+    width:100%; padding:11px 12px; font-size:16px; border:1px solid var(--line);
+    border-radius:9px; background:#fbfbfc; color:var(--ink); font-family:inherit;
+  }
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  .grid .field{margin-bottom:0}
+  .with-suffix{position:relative}
+  .with-suffix input{padding-right:52px}
+  .suffix{position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--sub); pointer-events:none}
+  input:focus-visible,select:focus-visible{outline:2px solid var(--focus); outline-offset:1px; border-color:var(--focus)}
+
+  .cap{font-size:12px; color:var(--sub); margin-bottom:8px}
+  .chips{display:flex; gap:6px}
+  .chip{
+    flex:1; padding:9px 0; text-align:center; font-size:14px; border:1px solid var(--line);
+    border-radius:8px; background:#fbfbfc; color:var(--sub); cursor:pointer; user-select:none;
+    transition:background .12s,color .12s,border-color .12s;
+  }
+  .chip[aria-pressed="true"]{background:var(--chip-on); color:#fff; border-color:var(--chip-on)}
+  .chip:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+
+  .modewrap{display:grid; grid-template-columns:1fr auto; gap:12px; align-items:end}
+  .mode{display:flex; gap:6px}
+  .mode .chip{padding:10px 0}
+  .transit-in{width:96px}
+
+  .toggle{display:flex; align-items:center; gap:9px; margin-top:16px; cursor:pointer; user-select:none}
+  .toggle input{width:18px; height:18px; accent-color:var(--chip-on)}
+  .toggle span{font-size:13px}
+
+  .perf{border-top:1px dashed var(--line); margin:22px -22px 0; position:relative}
+  .perf::before,.perf::after{content:""; position:absolute; top:-9px; width:18px; height:18px; background:var(--surface); border-radius:50%}
+  .perf::before{left:-9px} .perf::after{right:-9px}
+
+  .results{padding:22px 0 4px; position:relative}
+  .rblock{margin-bottom:18px; position:relative}
+  .rblock:last-child{margin-bottom:0}
+  .rlabel{font-size:12px; color:var(--sub); letter-spacing:.02em}
+  .rlabel .tag{color:var(--ink); font-weight:600; margin-left:6px}
+  .date{font-size:34px; font-weight:600; letter-spacing:.01em; margin:5px 0 0; line-height:1.05}
+  .date.small{font-size:27px}
+  #arrive{color:var(--chop)}
+  .date .dow{font-size:18px; color:var(--sub); margin-left:8px}
+  .chop{
+    position:absolute; top:-4px; right:0; border:2.5px solid var(--chop); color:var(--chop);
+    border-radius:8px; padding:5px 9px; font-size:13px; font-weight:700; letter-spacing:.1em;
+    transform:rotate(-11deg); opacity:.9; text-align:center; line-height:1.2;
+  }
+  .chop small{display:block; font-size:8px; letter-spacing:.22em; font-weight:600; margin-top:2px}
+  @media (prefers-reduced-motion:no-preference){ .stamp{animation:press .28s ease-out} }
+  @keyframes press{0%{transform:rotate(-11deg) scale(1.28);opacity:0}60%{transform:rotate(-11deg) scale(.94);opacity:1}100%{transform:rotate(-11deg) scale(1);opacity:.9}}
+
+  .breakdown{font-size:13px; color:var(--sub); margin-top:14px; line-height:1.8}
+  .breakdown b{color:var(--ink); font-weight:600}
+  .hols{margin-top:10px; display:flex; flex-wrap:wrap; gap:6px}
+  .holchip{font-size:12px; background:#faeceb; color:#a23129; border:1px solid var(--hol); border-radius:6px; padding:4px 8px}
+  .holchip .d{color:#b06a63; margin-left:5px; font-size:11px}
+
+  .timeline{margin-top:16px}
+  .tl-bar{position:relative; height:22px; background:#eef0f3; border-radius:6px; overflow:hidden; border:1px solid var(--line)}
+  .tl-seg{position:absolute; top:0; bottom:0}
+  .tl-transit{background:repeating-linear-gradient(45deg,var(--transit),var(--transit) 5px,#d3ddec 5px,#d3ddec 10px)}
+  .tl-hol{background:var(--hol)}
+  .tl-mark{position:absolute; top:-3px; bottom:-3px; width:2px; background:var(--ink)}
+  .tl-legend{display:flex; gap:14px; font-size:11px; color:var(--sub); margin-top:7px; flex-wrap:wrap}
+  .tl-legend i{display:inline-block; width:11px; height:11px; border-radius:2px; margin-right:4px; vertical-align:-1px}
+  .tl-legend .l-hol{background:var(--hol)}
+  .tl-legend .l-transit{background:var(--transit)}
+  .tl-legend .l-pickup{background:var(--ink); width:2px; height:12px; border-radius:0}
+
+  .foot{padding:14px 22px 18px; border-top:1px dashed var(--line); font-size:11px; color:var(--sub); line-height:1.7}
+  .foot b{color:#a23129}
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="head">
+      <div>
+        <div class="eyebrow">中国サプライヤー</div>
+        <h1 class="title">YS納期ナビ</h1>
+      </div>
+      <button type="button" class="popbtn" id="popout" title="別ウィンドウで最前面に表示（Chrome/Edge）">⧉ 最前面</button>
+    </div>
+
+    <div class="body">
+      <div class="grid" style="margin-bottom:14px">
+        <div class="field">
+          <label for="order">注文日</label>
+          <input type="date" id="order">
+        </div>
+        <div class="field">
+          <label for="supplier">製品</label>
+          <select id="supplier"></select>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-bottom:4px">
+        <div class="field">
+          <label for="days">所要日数（集荷まで）</label>
+          <div class="with-suffix">
+            <input type="number" id="days" min="0" step="1" class="mono">
+            <span class="suffix">営業日</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>輸送手段</label>
+          <div class="modewrap">
+            <div class="mode" id="mode" role="group" aria-label="輸送手段">
+              <button type="button" class="chip" data-mode="sea">船</button>
+              <button type="button" class="chip" data-mode="air">エア</button>
+            </div>
+            <div class="with-suffix transit-in">
+              <input type="number" id="transit" min="0" step="1" class="mono" aria-label="輸送日数">
+              <span class="suffix">日</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px">
+        <div class="cap">休業日（工場が動かない曜日）</div>
+        <div class="chips" id="chips" role="group" aria-label="休業日の曜日"></div>
+      </div>
+
+      <label class="toggle">
+        <input type="checkbox" id="holToggle" checked>
+        <span>中国の連休を除外して集荷日を後ろ倒しにする</span>
+      </label>
+
+      <div class="perf"></div>
+
+      <div class="results">
+        <div class="rblock">
+          <div class="rlabel">集荷可能日<span class="tag">サプライヤー荷渡し</span></div>
+          <div class="date mono" id="pickup">—</div>
+          <div class="chop" id="chop" hidden>集荷可能<small>READY</small></div>
+        </div>
+        <div class="rblock">
+          <div class="rlabel">最短到着可能日<span class="tag" id="arriveTag"></span></div>
+          <div class="date small mono" id="arrive">—</div>
+        </div>
+
+        <div class="breakdown" id="breakdown"></div>
+        <div class="hols" id="hols"></div>
+
+        <div class="timeline" id="timeline" hidden>
+          <div class="tl-bar" id="tlbar"></div>
+          <div class="tl-legend">
+            <span><i class="l-pickup"></i>集荷可能日</span>
+            <span><i class="l-hol"></i>中国連休</span>
+            <span><i class="l-transit"></i>輸送</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot" id="foot"></div>
+  </main>
+
+<script>
+/* ===== 編集するのはこの3か所だけ ===== */
+
+// 製品ごとの標準の所要日数（集荷まで／営業日）。実績に合わせて書き換え可。
+// ※いまは製品別。サプライヤーごとに変えたくなったら行を増やせばOK。
+const PRODUCTS = [
+  {name:"屋内",       days:25},
+  {name:"屋外",       days:35},
+  {name:"STUDIA",    days:30},
+  {name:"LINQ WALL", days:30},
+  {name:"LED",       days:30},
+  {name:"マトリ",     days:7},
+  {name:"K10",       days:7},
+  {name:"手動入力",   days:25},
+];
+
+// 輸送日数（暦日）。船=2週間 / エア=1週間。
+const TRANSIT = { sea:14, air:7 };
+
+// 中国の連休（工場停止期間・両端を含む）。
+// ⚠ 日程は初期値です。国務院の公式発表と工場カレンダーで必ず上書きしてください。
+//    工場の実休みは法定休暇より長いことが多いです。
+const HOLIDAYS = [
+  {name:"春節",       start:"2026-02-14", end:"2026-02-25"},
+  {name:"清明節",     start:"2026-04-04", end:"2026-04-06"},
+  {name:"労働節",     start:"2026-05-01", end:"2026-05-05"},
+  {name:"端午節",     start:"2026-06-19", end:"2026-06-21"},
+  {name:"中秋節",     start:"2026-09-25", end:"2026-09-27"},
+  {name:"国慶節",     start:"2026-10-01", end:"2026-10-08"},
+  {name:"元旦(27)",   start:"2027-01-01", end:"2027-01-03"},
+  {name:"春節(27)推定",start:"2027-02-01", end:"2027-02-14"},
+];
+
+/* ===== ここから下はロジック ===== */
+const DOW = ["日","月","火","水","木","金","土"];
+const $ = id => document.getElementById(id);
+const pd = v => { const [y,m,d]=v.split("-").map(Number); return (y&&m&&d)?new Date(y,m-1,d):null; };
+const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+
+const HOLS = HOLIDAYS.map(h=>({name:h.name,s:pd(h.start),e:pd(h.end)})).filter(h=>h.s&&h.e);
+const inHol = dt => HOLS.find(h=>dt>=h.s&&dt<=h.e) || null;
+
+// UI refs
+const orderEl=$("order"), supEl=$("supplier"), daysEl=$("days"),
+      transitEl=$("transit"), holToggle=$("holToggle"),
+      pickupEl=$("pickup"), arriveEl=$("arrive"), arriveTag=$("arriveTag"),
+      chopEl=$("chop"), bdEl=$("breakdown"), holsEl=$("hols"),
+      tlEl=$("timeline"), tlbar=$("tlbar"), footEl=$("foot");
+
+// default order date = today
+const t=new Date(); orderEl.value=iso(t);
+
+// supplier dropdown
+PRODUCTS.forEach((s,i)=>{ const o=document.createElement("option"); o.value=i; o.textContent=`${s.name}（${s.days}営業日）`; supEl.appendChild(o); });
+supEl.value=0; daysEl.value=PRODUCTS[0].days;
+supEl.addEventListener("change",()=>{ daysEl.value=PRODUCTS[+supEl.value].days; calc(); });
+
+// off-days: default 日 only
+const off=new Set([0]);
+const chipsEl=$("chips");
+DOW.forEach((d,i)=>{
+  const b=document.createElement("button"); b.type="button"; b.className="chip"; b.textContent=d;
+  b.setAttribute("aria-pressed", off.has(i)?"true":"false");
+  b.addEventListener("click",()=>{ off.has(i)?off.delete(i):off.add(i); b.setAttribute("aria-pressed",off.has(i)?"true":"false"); calc(); });
+  chipsEl.appendChild(b);
+});
+
+// transport mode
+let mode="sea";
+transitEl.value=TRANSIT.sea;
+document.querySelectorAll("#mode .chip").forEach(b=>{
+  if(b.dataset.mode===mode) b.setAttribute("aria-pressed","true");
+  b.addEventListener("click",()=>{
+    mode=b.dataset.mode;
+    document.querySelectorAll("#mode .chip").forEach(x=>x.setAttribute("aria-pressed", x.dataset.mode===mode?"true":"false"));
+    transitEl.value=TRANSIT[mode];
+    calc();
+  });
+});
+
+const fmtDate = dt => `${dt.getFullYear()} / ${String(dt.getMonth()+1).padStart(2,"0")} / ${String(dt.getDate()).padStart(2,"0")}<span class="dow">(${DOW[dt.getDay()]})</span>`;
+
+function calc(){
+  const start=pd(orderEl.value);
+  const days=parseInt(daysEl.value,10);
+  const transit=parseInt(transitEl.value,10);
+  const useHol=holToggle.checked;
+
+  const clear=msg=>{ pickupEl.textContent="—"; arriveEl.textContent="—"; arriveTag.textContent=""; chopEl.hidden=true; bdEl.textContent=""; holsEl.innerHTML=""; tlEl.hidden=true; footEl.innerHTML=msg; };
+
+  if(!start||isNaN(days)||days<0){ return clear("注文日と所要日数を入れてください。"); }
+  if(off.size>=7){ return clear("全曜日を休業にすると計算できません。稼働日を残してください。"); }
+
+  // 集荷可能日：注文日の翌日から、稼働日だけを所要日数ぶん数える
+  const cur=new Date(start);
+  let counted=0, sun=0, holDays=0; const holHit={};
+  let guard=0;
+  while(counted<days && guard++<20000){
+    cur.setDate(cur.getDate()+1);
+    if(off.has(cur.getDay())){ sun++; continue; }
+    const h=useHol ? inHol(cur) : null;
+    if(h){ holDays++; holHit[h.name]=(holHit[h.name]||0)+1; continue; }
+    counted++;
+  }
+  const pickup=new Date(cur);
+  const arrive=new Date(pickup); arrive.setDate(arrive.getDate()+ (isNaN(transit)?0:transit));
+
+  pickupEl.innerHTML=fmtDate(pickup);
+  arriveEl.innerHTML=fmtDate(arrive);
+  arriveTag.textContent = (mode==="sea"?"船":"エア") + `（集荷 +${isNaN(transit)?0:transit}日）`;
+
+  // stamp
+  chopEl.hidden=false; chopEl.classList.remove("stamp"); void chopEl.offsetWidth; chopEl.classList.add("stamp");
+
+  const calDays=Math.round((pickup-start)/864e5);
+  const offNames=[...off].sort().map(i=>DOW[i]).join("・");
+  bdEl.innerHTML =
+    `生産：暦日で <b>${calDays}</b> 日 ／ ${offNames}曜を <b>${sun}</b> 日除外` +
+    (useHol ? ` ／ 連休で <b>${holDays}</b> 日ぶん後ろ倒し` : ``) +
+    `<br>集荷から到着まで：<b>${isNaN(transit)?0:transit}</b> 日（${mode==="sea"?"船":"エア"}）`;
+
+  // 該当した連休（生産期間に重なったもの）
+  holsEl.innerHTML="";
+  if(useHol){
+    HOLS.filter(h=>h.e>=start && h.s<=pickup).forEach(h=>{
+      const el=document.createElement("span"); el.className="holchip";
+      el.innerHTML=`${h.name}<span class="d">${iso(h.s).slice(5)}〜${iso(h.e).slice(5)}</span>`;
+      holsEl.appendChild(el);
+    });
+  }
+
+  drawTimeline(start, pickup, arrive, useHol);
+  footEl.innerHTML =
+    `「集荷可能日」＝サプライヤーが荷渡しできる日。最短到着可能日はそこに輸送日数（船2週間／エア1週間）を足したものです。<br>` +
+    `連休の日程は<b>初期値</b>です。中国の連休は毎年変動するため、公式発表後に更新してください（コード先頭の HOLIDAYS）。`;
+}
+
+function drawTimeline(start, pickup, arrive, useHol){
+  const total=(arrive-start)/864e5;
+  if(!(total>0)){ tlEl.hidden=true; return; }
+  tlEl.hidden=false; tlbar.innerHTML="";
+  const pct=d=>Math.max(0,Math.min(100,((d-start)/864e5)/total*100));
+
+  // transit segment
+  const tr=document.createElement("div"); tr.className="tl-seg tl-transit";
+  tr.style.left=pct(pickup)+"%"; tr.style.width=(100-pct(pickup))+"%"; tlbar.appendChild(tr);
+
+  // holiday segments (clipped to visible span)
+  if(useHol){
+    HOLS.forEach(h=>{
+      if(h.e<start||h.s>arrive) return;
+      const a=h.s<start?start:h.s, b=h.e>arrive?arrive:h.e;
+      const seg=document.createElement("div"); seg.className="tl-seg tl-hol";
+      seg.style.left=pct(a)+"%"; seg.style.width=Math.max(1.2,pct(b)-pct(a))+"%";
+      seg.title=h.name; tlbar.appendChild(seg);
+    });
+  }
+  // pickup marker
+  const mk=document.createElement("div"); mk.className="tl-mark"; mk.style.left=pct(pickup)+"%"; tlbar.appendChild(mk);
+}
+
+[orderEl,daysEl,transitEl].forEach(el=>el.addEventListener("input",calc));
+holToggle.addEventListener("change",calc);
+
+// 別ウィンドウ表示：対応ブラウザは常時最前面(PiP)、非対応は通常の別窓
+$("popout").addEventListener("click", async ()=>{
+  if("documentPictureInPicture" in window){
+    if(documentPictureInPicture.window){ documentPictureInPicture.window.focus?.(); return; }
+    const pip = await documentPictureInPicture.requestWindow({width:500, height:860});
+    // 現在のスタイルを移送
+    document.querySelectorAll("style").forEach(s=>{
+      const c=pip.document.createElement("style"); c.textContent=s.textContent; pip.document.head.appendChild(c);
+    });
+    // カードを小窓へ移動（元の場所には目印を残す）
+    const card=document.querySelector(".card");
+    const holder=document.createElement("div");
+    card.replaceWith(holder);
+    pip.document.body.appendChild(card);
+    // 小窓を閉じたら元に戻す
+    pip.addEventListener("pagehide", ()=>{ holder.replaceWith(card); }, {once:true});
+  }else{
+    // Safari/Firefox など：通常の別ウィンドウ（最前面固定は不可）
+    window.open(location.href, "noukinavi", "popup,width=500,height=860");
+  }
+});
+
+calc();
+</script>
+</body>
+</html>
