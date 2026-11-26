@@ -4,38 +4,42 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>YS納期ナビ — 中国サプライヤー</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3QgeD0iMyIgeT0iMyIgd2lkdGg9IjI2IiBoZWlnaHQ9IjI2IiByeD0iNy41IiBmaWxsPSIjYzgzNDJhIi8+PHBhdGggZD0iTTkuNSAxNmgxME0xNSAxMWw1IDUtNSA1IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMi40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz4K">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3QgeD0iMyIgeT0iMyIgd2lkdGg9IjI2IiBoZWlnaHQ9IjI2IiByeD0iNy41IiBmaWxsPSIjZTA4MjNmIi8+PHBhdGggZD0iTTkuNSAxNmgxME0xNSAxMWw1IDUtNSA1IiBmaWxsPSJub25lIiBzdHJva2U9IiMxYjFmMjciIHN0cm9rZS13aWR0aD0iMi40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz4=">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
+  /* YSナビの色の流れ：納期＝橙（AN-KAN赤→納期橙→支払黄→在庫段ボール→品質青緑→製品青） */
   :root{
     --ink:#1b1f27; --sub:#6b7280; --line:#c9ccd3; --surface:#e9ebef;
-    --card:#ffffff; --chop:#c8342a; --chip-on:#1b1f27; --focus:#2f6df6;
+    --card:#ffffff; --chop:#c8342a; --chip-on:#1b1f27; --focus:#1b1f27; --band:#e0823f; --band-d:#a95a22;
     --hol:#e6b8b3; --transit:#c3d0e6; --radius:14px;
   }
   *{box-sizing:border-box}
   html,body{margin:0}
   body{
     background:var(--surface); color:var(--ink);
-    font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    font-family:"Zen Kaku Gothic New",system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
     -webkit-font-smoothing:antialiased;
     display:flex; justify-content:center; padding:28px 16px 48px; min-height:100vh;
   }
-  .mono{font-family:ui-monospace,"SF Mono","DejaVu Sans Mono",Menlo,Consolas,monospace}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,"SF Mono","DejaVu Sans Mono",Menlo,Consolas,monospace}
   .card{
     width:100%; max-width:460px; background:var(--card); border-radius:var(--radius);
     box-shadow:0 1px 0 rgba(0,0,0,.04),0 18px 40px -24px rgba(0,0,0,.35); overflow:hidden;
   }
   .head{
-    padding:20px 22px 16px; border-bottom:1px dashed var(--line);
+    padding:20px 22px 16px; background:var(--band); color:var(--ink);
+    box-shadow:inset 0 -4px 0 var(--band-d);
     display:flex; align-items:baseline; justify-content:space-between; gap:10px;
   }
-  .eyebrow{font-size:11px; letter-spacing:.18em; color:var(--sub); text-transform:uppercase}
-  .title{font-size:19px; font-weight:700; margin:2px 0 0}
+  .eyebrow{font-size:11px; letter-spacing:.18em; color:rgba(27,31,39,.72); text-transform:uppercase}
+  .title{font-size:21px; font-weight:900; margin:2px 0 0; letter-spacing:.02em}
   .head .no{font-size:11px; color:var(--sub); letter-spacing:.05em}
   .brand{display:flex; align-items:center; gap:12px}
-  .logo{flex:none; width:38px; height:38px; transform:rotate(-6deg); filter:drop-shadow(0 2px 4px rgba(200,52,42,.28))}
+  .logo{flex:none; width:38px; height:38px; transform:rotate(-6deg); filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}
   .logo svg{display:block; width:100%; height:100%}
   .popbtn{
-    border:1px solid var(--line); background:#fbfbfc; color:var(--ink); border-radius:8px;
+    border:2px solid var(--ink); background:#fff; color:var(--ink); border-radius:8px; font-weight:700;
     padding:7px 11px; font-size:12px; cursor:pointer; font-family:inherit; white-space:nowrap;
     transition:background .12s;
   }
@@ -145,8 +149,8 @@
       <div class="brand">
         <span class="logo" aria-hidden="true">
           <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-            <rect x="3" y="3" width="26" height="26" rx="7.5" fill="#c8342a"/>
-            <path d="M9.5 16h10M15 11l5 5-5 5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="3" y="3" width="26" height="26" rx="7.5" fill="#1b1f27"/>
+            <path d="M9.5 16h10M15 11l5 5-5 5" fill="none" stroke="#e0823f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
         <div>
